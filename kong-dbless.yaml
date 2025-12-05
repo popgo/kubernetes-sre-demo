@@ -1,0 +1,29 @@
+# kong-dbless.yaml
+
+# 1. Kong in DB-less Environment
+# Set Kong to run in database-less mode
+env:
+  database: "off"
+
+# 2. Enable Kong Ingress Controller (KIC)
+# KIC is responsible for reading Kubernetes Ingress/CRD resources and converting them
+# into Kong's declarative configuration (Key to DB-less mode)
+ingressController:
+  enabled: true
+  
+# 3. KIC's Declarative Configuration Mode
+# KIC will push the configuration to the /kong/declarative/kong.yml file
+ingressController:
+  # ... (Other KIC configurations)
+  env:
+    # Ensure KIC knows Kong is running in DB-less mode
+    KONGA_DB_INTEGRATION: "off" # Note: This variable name is often for Konga, the KONG_DATABASE variable is more common for KIC configuration reference if needed, but KONG_DECLARATIVE_CONFIG is the critical one.
+    # KIC's operational mode: write the configuration to the specified volume file
+    KONG_DECLARATIVE_CONFIG: "/kong/declarative/kong.yml"
+
+# 4. Expose Kong Service
+# The default configuration is typically LoadBalancer or NodePort.
+# Retain the default to ensure external access.
+# (The actual service configuration would be defined under a 'service' block, 
+# not explicitly shown in this 'ingressController' context, but the comment reflects 
+# the intent for external access.)

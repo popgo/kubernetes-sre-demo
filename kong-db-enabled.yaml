@@ -1,0 +1,39 @@
+# kong-db-enabled.yaml
+
+# 1. Configure the Kong Gateway container to run in PostgreSQL mode
+env:
+  database: "postgres"
+  # (Optional: If you need an external connection, you might also need to configure
+  # KONG_PG_HOST/USER/PASSWORD, but by default, the Helm Chart will automatically
+  # inject these settings pointing to the built-in Postgres service.)
+
+# 2. Enable the bundled PostgreSQL database
+# This section instructs the Helm Chart to install PostgreSQL as Kong's backend database.
+postgresql:
+  enabled: true
+  # Override the failing image tag with a known working tag
+  image:
+    registry: docker.io
+    repository: library/postgres
+    tag: "13.12"
+  # It is recommended to set a secure username and password,
+  # but this is optional if you use the default settings.
+  # auth:
+  #   username: kong
+  #   password: <Your_Secure_Password>
+
+# 3. Enable the Kong Ingress Controller (KIC)
+# KIC will now manage the configuration directly by writing to the database.
+ingressController:
+  enabled: true
+  
+  # Remove all environment variables related to the DB-less mode configuration.
+  # Note: The 'KONG_DECLARATIVE_CONFIG' setting used for DB-less mode MUST be removed
+  # when switching to database mode.
+
+# 4. Expose the Kong Service (if needed)
+# The actual service configuration would be defined here if you need to override 
+# the default LoadBalancer or NodePort settings for external access.
+# service:
+#   type: LoadBalancer 
+#   ...
