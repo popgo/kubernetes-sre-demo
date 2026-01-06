@@ -1,0 +1,91 @@
+# 1A. Webapp backend Deployment V1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-v1
+  namespace: kong
+  labels:
+    app: shop
+    version: v1
+spec:
+  # --- FIX 1: Add replicas and selector ---
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shop
+      version: v1
+  # --- FIX 2 & 3: Add Pod Template and Containers ---
+  template:
+    metadata:
+      labels:
+        app: shop
+        version: v1
+    spec:
+      containers:
+      - name: shop-container
+        image: nginx:latest # Replace with your actual webapp image
+        ports:
+        - containerPort: 80
+        env:
+        - name: VERSION
+          value: "V1" # Environment variable to confirm version in logs/response
+---
+# 1B. Webapp backend Deployment V2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-v2
+  namespace: kong
+  labels:
+    app: shop
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shop
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: shop
+        version: v2
+    spec:
+      containers:
+      - name: shop-container
+        image: nginx:1.25 # Replace with your actual webapp image (or different image/config for v2)
+        ports:
+        - containerPort: 80
+        env:
+        - name: VERSION
+          value: "V2" # Environment variable to confirm version
+---
+# 2A. Webapp backend K8s Service V1
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-v1 # K8s Service name for V1
+  namespace: kong
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  # Selector links the Service to the V1 Pods via their labels
+  selector:
+    app: shop
+    version: v1 
+---
+# 2B. Webapp backend K8s Service V2
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-v2 # K8s Service name for V2
+  namespace: kong
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  # Selector links the Service to the V2 Pods via their labels
+  selector:
+    app: shop
+    version: v2
