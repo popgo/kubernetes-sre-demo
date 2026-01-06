@@ -41,3 +41,7 @@ installCRDs: true
 # service:
 #   type: LoadBalancer 
 #   ...
+admin:
+  enabled: true
+  http:
+    enabled: true
