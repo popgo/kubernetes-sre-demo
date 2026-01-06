@@ -6,6 +6,7 @@ env:
   # (Optional: If you need an external connection, you might also need to configure
   # KONG_PG_HOST/USER/PASSWORD, but by default, the Helm Chart will automatically
   # inject these settings pointing to the built-in Postgres service.)
+  plugins: "bundled,rate-limiting"
 
 # 2. Enable the bundled PostgreSQL database
 # This section instructs the Helm Chart to install PostgreSQL as Kong's backend database.
@@ -26,6 +27,9 @@ postgresql:
 # KIC will now manage the configuration directly by writing to the database.
 ingressController:
   enabled: true
+
+# Explicitly ensure KIC's CRDs are installed by the chart.
+installCRDs: true 
   
   # Remove all environment variables related to the DB-less mode configuration.
   # Note: The 'KONG_DECLARATIVE_CONFIG' setting used for DB-less mode MUST be removed
