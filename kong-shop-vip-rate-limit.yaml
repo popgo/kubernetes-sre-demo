@@ -1,0 +1,90 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: shop-key-auth
+  namespace: kong
+plugin: key-auth
+config:
+  key_names: [api-key]
+  hide_credentials: true
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: user-vip-key-secret
+  namespace: kong
+  labels:
+    konghq.com/credential: key-auth
+type: Opaque
+stringData:
+  kongCredType: key-auth
+  key: user-vip-key # for curl -H "api-key: user-vip-key"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: user-standard-key-secret
+  namespace: kong
+  labels:
+    konghq.com/credential: key-auth
+type: Opaque
+stringData:
+  kongCredType: key-auth
+  key: user-standard-key  # for curl -H "api-key: user-standard-key"
+
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: vip-rate-limit
+  namespace: kong
+#consumerRef: user-vip
+config:
+  minute: 100
+  policy: cluster
+  limit_by: consumer  # for consumer rate limit
+  hide_client_headers: false # for check X-RateLimit-Remaining quotas
+plugin: rate-limiting
+
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: standard-rate-limit
+  namespace: kong
+#consumerRef: user-standard
+config:
+  minute: 5
+  policy: cluster
+  limit_by: consumer  # for consumer rate limit
+  hide_client_headers: false # for check X-RateLimit-Remaining quotas
+plugin: rate-limiting
+
+---
+# VIP user
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: user-vip
+  namespace: kong
+  annotations:
+    kubernetes.io/ingress.class: kong
+    konghq.com/plugins: vip-rate-limit
+username: user-vip
+credentials:
+- user-vip-key-secret
+
+---
+# user
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: user-standard
+  namespace: kong
+  annotations:
+    kubernetes.io/ingress.class: kong
+    konghq.com/plugins: standard-rate-limit
+username: user-standard
+credentials:
+- user-standard-key-secret
